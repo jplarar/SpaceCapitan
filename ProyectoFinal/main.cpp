@@ -217,7 +217,6 @@ void initModels(){
 void myMouse(int button, int state, int x, int y)
 {
     y = height - y;
-    cout << "x: " << x << "| y: " << y << endl;
     if (state == GLUT_DOWN)
     {
         
@@ -580,7 +579,6 @@ void restart()
 
 void drawHighScore()
 {
-    cout<<highScoreLblBase<<endl;
     glPushMatrix();
     glClearColor(0, 0, 0, 1.0);
     glColor3f(1, 1, 1);
@@ -711,6 +709,13 @@ void init()
 }
 
 int main(int argc, char *argv[]) {
+    cout<<"################################################"<<endl;
+    cout<<"##                                            ##"<<endl;
+    cout<<"##              Space Capitan                 ##"<<endl;
+    cout<<"##    Juan Pualo Lara Rodriguez - A00999823   ##"<<endl;
+    cout<<"##    Manuel Calzado Maycotte  -  A00811102   ##"<<endl;
+    cout<<"##                                            ##"<<endl;
+    cout<<"################################################"<<endl;
     glutInit(&argc, argv);
     glutInitWindowSize(width,height);
     glutInitWindowPosition(100,100);
