@@ -25,19 +25,33 @@
 using namespace std;
 
 int width = 800, height = 600;
-char title[] = "Space Capitán";
+int bgCounter = 0;
+char title[] = "Space Capitan";
 char jugar[] = "Jugar";
 char instr[] = "Instrucciones";
 char salir[] = "Salir";
+char scoreLblBase[] = "Score: ";
+char scoreLbl[] = "Score: ";
+char volver[] = "Volver";
+char siguente[] = "Siguiente";
+char instructions[] = "Esquiva los objetos dañinos para seguir tu camino";
+char instructions2[] = "Toma los objetos buenos para mejorar tu velocidad";
 bool menuJugar = false, menuInstr = false, menuSalir = false;
 int botonJugar = 400, botonInstr = 280, botonSalir = 150;
-static GLuint texName[2];
+static GLuint texName[30];
 int spacePositionX = 400, spacePositionY = 250;
 string rootPath;
-GLMmodel model[1];
+GLMmodel model[2];
 string fullPath = __FILE__;
 size_t found = fullPath.find_last_of("/\\");
 string path = fullPath.substr(0,found+1);
+int zIndexGood = 0;
+int zIndexBad = -300;
+int badX, badY, goodX, goodY;
+int score = 0;
+int speed = 50;
+int goodImage;
+int badImage;
 
 /*
  * 0 = Menu
@@ -46,7 +60,6 @@ string path = fullPath.substr(0,found+1);
  * 3 = salir
  */
 int globalState = 0;
-
 
 void myKeyboard(unsigned char key, int mouseX, int mouseY)
 {
@@ -58,7 +71,7 @@ void myKeyboard(unsigned char key, int mouseX, int mouseY)
         case 'a':
         case 'A':
             if (spacePositionX > 320) {
-                spacePositionX = spacePositionX - 5;
+                spacePositionX = spacePositionX - 10;
 
             }
             break;
@@ -66,21 +79,21 @@ void myKeyboard(unsigned char key, int mouseX, int mouseY)
         case 'D':
             
             if (spacePositionX < 480) {
-                spacePositionX = spacePositionX + 5;
+                spacePositionX = spacePositionX + 10;
                 
             }
             break;
         case 'w':
         case 'W':
             if (spacePositionY < 350) {
-                spacePositionY = spacePositionY + 5;
+                spacePositionY = spacePositionY + 10;
                 
             }
             break;
         case 's':
         case 'S':
             if (spacePositionY > 250) {
-                spacePositionY = spacePositionY - 5;
+                spacePositionY = spacePositionY - 10;
                 
             }
             break;
@@ -118,21 +131,83 @@ void loadTexture(Image* image,int k)
                  image->pixels);               //The actual pixel data
     
 }
-
 void initRendering()
 {
     GLuint i=0;
+    glGenTextures(30, texName); //Make room for our texture
     Image* image;
-    rootPath = path + "img/background.bmp";
+    rootPath = path + "img/space_500-1 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-2 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-3 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-4 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-5 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-6 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-7 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-8 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-9 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-10 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-11 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-12 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-13 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-14 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-15 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-16 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-17 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/space_500-18 (dragged).bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    // Texture
+    rootPath = path + "img/metal.bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    //BAD things 19-24
+    rootPath = path + "img/bad1.bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/bad2.bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/bad3.bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/bad4.bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/bad5.bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    // GOD things 25-29
+    rootPath = path + "img/good1.bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/good2.bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/good3.bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/good4.bmp";
+    image = loadBMP(&rootPath[0]);loadTexture(image, i++);
+    rootPath = path + "img/good5.bmp";
     image = loadBMP(&rootPath[0]);loadTexture(image, i++);
     delete image;
 }
-
 void initModels(){
-    rootPath = path + "models/manzana.obj";
+    rootPath = path + "models/aircraft.obj";
     model[0] = *glmReadOBJ(&rootPath[0]);
     glmUnitize(&model[0]);
     glmVertexNormals(&model[0], 90.0, GL_TRUE);
+    rootPath = path + "models/Heart.obj";
+    model[1] = *glmReadOBJ(&rootPath[1]);
+    glmUnitize(&model[1]);
+    glmVertexNormals(&model[1], 90.0, GL_TRUE);
 }
 
 void myMouse(int button, int state, int x, int y)
@@ -178,10 +253,11 @@ void myMouse(int button, int state, int x, int y)
     
 }
 
-void drawText(char *text, int x, int y)
+void drawText(char *text, int x, int y, float scale)
 {
     char *p;
     glTranslatef(x, y, 0);
+    glScaled(scale, scale, 0.0);
     for (p = text; *p; p++) {
         glutStrokeCharacter(GLUT_STROKE_ROMAN, *p);
     }
@@ -195,16 +271,14 @@ void menu()
     // Titulo
     glPushMatrix();
     glLineWidth(3.0);
-    glScaled(0.7, 0.7, 0.0);
-    drawText(title, 130, 700);
+    drawText(title, 100, 490, 0.7);
     glPopMatrix();
     
     // JUGAR
     glPushMatrix();
     glPushMatrix();
     glLineWidth(1.0);
-    glScaled(0.4, 0.4, 0.0);
-    drawText(jugar, 900, 930);
+    drawText(jugar, 350, 375, 0.5);
     glPopMatrix();
     glPushMatrix();
     glTranslatef(400,botonJugar, -1);
@@ -227,8 +301,7 @@ void menu()
     glColor3f(1, 1, 1);
     glPushMatrix();
     glLineWidth(1.0);
-    glScaled(0.4, 0.4, 0.0);
-    drawText(instr, 720, 630);
+    drawText(instr, 280, 250, 0.4);
     glPopMatrix();
     glPushMatrix();
     glTranslatef(400,botonInstr, -1);
@@ -251,8 +324,7 @@ void menu()
     glColor3f(1, 1, 1);
     glPushMatrix();
     glLineWidth(1.0);
-    glScaled(0.4, 0.4, 0.0);
-    drawText(salir, 800, 350);
+    drawText(salir, 320, 140, 0.4);
     glPopMatrix();
     glPushMatrix();
     glTranslatef(400,botonSalir, -1);
@@ -274,29 +346,246 @@ void menu()
 void paintBackground()
 {
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texName[0]);
+    glBindTexture(GL_TEXTURE_2D, texName[bgCounter]);
     glBegin(GL_QUADS);
     glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f,  -5.0f);
+    glVertex3f(0.0f, 0.0f,  -10.0f);
     glTexCoord2f(1.0f, 0.0f);
-    glVertex3f( 800.0f, 0.0f,  -5.0f);
+    glVertex3f( 800.0f, 0.0f,  -10.0f);
     glTexCoord2f(1.0f, 1.0f);
-    glVertex3f( 800.0f,  600.0f,  -5.0f);
+    glVertex3f( 800.0f,  600.0f,  -10.0f);
     glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(0.0f,  600.0f,  -5.0f);
+    glVertex3f(0.0f,  600.0f,  -10.0f);
     glEnd();
     glDisable(GL_TEXTURE_2D);
+    cout<<"Draw Background"<<endl;
 }
 
 void drawShip()
 {
-    
     glPushMatrix();
-    glTranslatef (spacePositionX, spacePositionY, 500);
-    glScalef(30,30,30);
-    //glRotatef(0,0,0,6);
-    glmDraw(&model[0], GLM_COLOR);
+    
+    // habilita la textura
+    glEnable(GL_TEXTURE_2D);
+    
+    // hbailitar esto tambien
+    glEnable(GL_TEXTURE_GEN_S);
+    glEnable(GL_TEXTURE_GEN_T);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    
+    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, texName[18]);
+    glPushMatrix();
+    glTranslatef(spacePositionX, spacePositionY, 500);
+    glScalef(35, 35, 35);
+    glRotatef(20, 5, 0, 0);
+    glmDraw(&model[0], GLM_TEXTURE);
     glPopMatrix();
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_TEXTURE_GEN_S);
+    glDisable(GL_TEXTURE_GEN_T);
+    glPopMatrix();
+    
+    
+}
+
+void displayInstructions()
+{
+    glClearColor(0, 0, 0, 1.0);
+    glColor3f(1, 1, 1);
+    glPushMatrix();
+    glLineWidth(3.0);
+    drawText(instr, 140, 490, 0.7);
+    glPopMatrix();
+    
+    // Back button
+    glPushMatrix();
+    glPushMatrix();
+    glLineWidth(1.0);
+    drawText(volver, 100, 70, 0.4);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(150,100, -1);
+    glScaled(150,80, 1);
+    glRotated(20, 1.0, 1.0, 0);
+    glColor3d(0, 0, .3);
+    glutSolidCube(1);
+    glColor3d(1, 1, 1);
+    glLineWidth(3);
+    glutWireCube(1);
+    glPopMatrix();
+    glPopMatrix();
+    
+    // Next button
+    glPushMatrix();
+    glPushMatrix();
+    glLineWidth(1.0);
+    drawText(siguente, 550, 75, 0.3);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(650,100, -1);
+    glScaled(170,80, 1);
+    glRotated(20, 1.0, -1.0, 0);
+    glColor3d(0, 0, .3);
+    glutSolidCube(1);
+    glColor3d(1, 1, 1);
+    glLineWidth(3);
+    glutWireCube(1);
+    glPopMatrix();
+    glPopMatrix();
+    
+    // TEXT
+    glPushMatrix();
+    drawText(instructions, 60, 430, 0.2);
+    glPopMatrix();
+    glPushMatrix();
+    drawText(instructions2, 60, 280, 0.2);
+    glPopMatrix();
+    
+}
+
+void randomBadPosition()
+{
+    // X 300 - 500
+    badX = rand() % 200 + 300;
+    // Y 250 - 380
+    badY = rand() % 130 + 250;
+    // randomize image
+    badImage = rand() % 5 + 19;
+}
+
+void randomGoodPosition()
+{
+    // X 300 - 500
+    goodX = rand() % 200 + 300;
+    // Y 250 - 360
+    goodY = rand() % 110 + 250;
+    // randomize image
+    goodImage = rand() % 5 + 24;
+}
+
+void drawBadSphera()
+{
+    glPushMatrix();
+
+    // habilita la textura
+    glEnable(GL_TEXTURE_2D);
+    
+    // hbailitar esto tambien
+    glEnable(GL_TEXTURE_GEN_S);
+    glEnable(GL_TEXTURE_GEN_T);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    
+    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, texName[badImage]);
+    glPushMatrix();
+    if (zIndexBad == 0) {
+        randomBadPosition();
+    }
+    glTranslatef(badX, badY, zIndexBad);
+    
+    glutSolidSphere(10, 100, 100);
+    glPopMatrix();
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_TEXTURE_GEN_S);
+    glDisable(GL_TEXTURE_GEN_T);
+    glPopMatrix();
+    
+}
+
+void drawGoodSphera()
+{
+    glPushMatrix();
+    
+    // habilita la textura
+    glEnable(GL_TEXTURE_2D);
+    
+    // hbailitar esto tambien
+    glEnable(GL_TEXTURE_GEN_S);
+    glEnable(GL_TEXTURE_GEN_T);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    
+    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, texName[goodImage]);
+    glPushMatrix();
+    if (zIndexGood == 0) {
+        randomGoodPosition();
+    }
+    glTranslatef(goodX, goodY, zIndexGood);
+    
+    glutSolidSphere(10, 100, 100);
+    glPopMatrix();
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_TEXTURE_GEN_S);
+    glDisable(GL_TEXTURE_GEN_T);
+    glPopMatrix();
+    
+}
+
+void drawScore()
+{
+    strcpy (scoreLbl,scoreLblBase);
+    char integer_string3[10];
+    sprintf(integer_string3, "%d", score/10);
+    strcat(scoreLbl, integer_string3);
+    glClearColor(0, 0, 0, 1.0);
+    glColor3f(1, 1, 1);
+    glPushMatrix();
+    glLineWidth(3.0);
+    drawText(scoreLbl, 450, 520, 0.3);
+    glPopMatrix();
+}
+
+void drawInstImages()
+{
+    glPushMatrix();
+    
+    // habilita la textura
+    glEnable(GL_TEXTURE_2D);
+    
+    // hbailitar esto tambien
+    glEnable(GL_TEXTURE_GEN_S);
+    glEnable(GL_TEXTURE_GEN_T);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    
+    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    for (int i = 0; i<5; i++) {
+        glPushMatrix();
+        glBindTexture(GL_TEXTURE_2D, texName[19+i]);
+        glPushMatrix();
+        glTranslatef(300+i*50, 330, 300);
+        glutSolidSphere(20, 100, 100);
+        glPopMatrix();
+    }
+    for (int i = 0; i<5; i++) {
+        glPushMatrix();
+        glBindTexture(GL_TEXTURE_2D, texName[24+i]);
+        glPushMatrix();
+        glTranslatef(300+i*50, 250, 300);
+        glutSolidSphere(20, 100, 100);
+        glPopMatrix();
+    }
+    
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_TEXTURE_GEN_S);
+    glDisable(GL_TEXTURE_GEN_T);
+    glPopMatrix();
+}
+
+void drawLives()
+{
+    
 }
 
 void display(){
@@ -316,8 +605,14 @@ void display(){
             break;
         case 1:
             drawShip();
+            drawBadSphera();
+            drawGoodSphera();
+            drawScore();
+            drawLives();
             break;
         case 2:
+            displayInstructions();
+            drawInstImages();
             break;
         case 3:
             exit(0);
@@ -329,6 +624,57 @@ void display(){
     
     glutSwapBuffers();//ya tiene integrado el glFlush
     
+}
+
+void validateColission()
+{
+    // colission to bad sphere
+    if (zIndexBad > 500 &&
+        badX > spacePositionX - 30 && badY < spacePositionX + 30 &&
+        badY > spacePositionY - 10 && badY < spacePositionY + 10) {
+        speed = speed + 5;
+        zIndexBad = 0;
+        score = score - 1000;
+    }
+    // colission to good sphere
+    if (zIndexGood > 500 &&
+        goodX > spacePositionX - 30 && goodX < spacePositionX + 30 &&
+        goodY > spacePositionY - 10 && goodY < spacePositionY + 10) {
+        if (speed > 6) {
+            speed = speed - 5;
+        }
+        zIndexGood = 0;
+        score = score + 1000;
+    }
+}
+
+void timer(int t)
+{
+
+    cout<<"speed: "<<speed<<endl;
+    if (bgCounter == 17) {
+        bgCounter = 0;
+    }
+    // GAME START
+    if(globalState == 1) {
+        glutTimerFunc(speed,timer,0);
+        score ++;
+        zIndexBad = zIndexBad + 5;
+        zIndexGood = zIndexGood + 5;
+        if (zIndexBad >= 600) {
+            zIndexBad = 0;
+        }
+        if (zIndexGood >= 600) {
+            zIndexGood = 0;
+        }
+        validateColission();
+    } else {
+        // MENU
+        glutTimerFunc(50,timer,0);
+    }
+    
+    glutPostRedisplay();
+    bgCounter++;
 }
 
 void resize(int w, int h)
@@ -344,21 +690,29 @@ void resize(int w, int h)
     gluLookAt(400, 300, 700, 400, 300, 0, 0, 1, -1);
 }
 
+void init()
+{
+
+}
+
 int main(int argc, char *argv[]) {
     glutInit(&argc, argv);
     glutInitWindowSize(width,height);
-    glutInitWindowPosition(300,300);
+    glutInitWindowPosition(100,100);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutCreateWindow("Space");
     glEnable(GL_DEPTH_TEST);
     glMatrixMode(GL_PROJECTION);
     initRendering();
     initModels();
+    glShadeModel(GL_SMOOTH);
+
+    init();
     glutDisplayFunc(display);
     glutKeyboardFunc(myKeyboard);
     glutMouseFunc(myMouse);
     glutReshapeFunc(resize);
-    //glutTimerFunc(100, timer, 1);
+    glutTimerFunc(50, timer, 1);
     glutMainLoop();
     
     return 0;
