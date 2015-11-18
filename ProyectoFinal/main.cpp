@@ -32,11 +32,12 @@ char instr[] = "Instrucciones";
 char salir[] = "Salir";
 char scoreLblBase[] = "Score: ";
 char scoreLbl[] = "Score: ";
-char volver[] = "Volver";
+string highScoreLblBase = "High Score: ";
+char highScoreLbl[] = "";
+char back[] = "Volver<---------";
 char siguente[] = "Siguiente";
-char instructions[] = "Esquiva los objetos dañinos para seguir tu camino";
-char instructions2[] = "Toma los objetos buenos para mejorar tu velocidad";
-bool menuJugar = false, menuInstr = false, menuSalir = false;
+char instructions[] = "Esquiva estos objetos son malos";
+char instructions2[] = "Estos son buenos mejoran tu puntaje";
 int botonJugar = 400, botonInstr = 280, botonSalir = 150;
 static GLuint texName[30];
 int spacePositionX = 400, spacePositionY = 250;
@@ -52,6 +53,8 @@ int score = 0;
 int speed = 50;
 int goodImage;
 int badImage;
+int livesCount = 3;
+int hightScore = 0;
 
 /*
  * 0 = Menu
@@ -204,51 +207,47 @@ void initModels(){
     model[0] = *glmReadOBJ(&rootPath[0]);
     glmUnitize(&model[0]);
     glmVertexNormals(&model[0], 90.0, GL_TRUE);
+    
     rootPath = path + "models/Heart.obj";
-    model[1] = *glmReadOBJ(&rootPath[1]);
+    model[1] = *glmReadOBJ(&rootPath[0]);
     glmUnitize(&model[1]);
     glmVertexNormals(&model[1], 90.0, GL_TRUE);
 }
 
 void myMouse(int button, int state, int x, int y)
 {
-    y = height-y;
-    cout<<"x: "<<x<<"| y: "<<y<<endl;
+    y = height - y;
+    cout << "x: " << x << "| y: " << y << endl;
     if (state == GLUT_DOWN)
     {
+        
         //Si el usuario oprime el boton izq del mouse
         if (button == GLUT_LEFT_BUTTON)
         {
-            if (y >= botonJugar-40 && y<= botonJugar+40 && x >= 400-150 && x <= 400+150 && globalState == 0 ) {
-                menuJugar = true;
+            int segmentYLen = height / 5;
+            int segmentXLen = width / 4;
+            // Start Game
+            if (y >= segmentYLen * 3 && y <= segmentYLen * 4 && x >= segmentXLen * 1 && x <= segmentXLen*3  && globalState == 0) {
                 globalState = 1;
-            } else {
-                menuJugar = false;
             }
             
-            if (y >= botonInstr-40 && y<= botonInstr+40 && x >= 400-150 && x <= 400+150 && globalState == 0 ) {
-                menuInstr = true;
+            // inst menu
+            if (y >= segmentYLen * 2 && y <= segmentYLen * 3 && x >= segmentXLen * 1 && x <= segmentXLen * 3 && globalState == 0) {
                 globalState = 2;
-            } else {
-                menuInstr = false;
             }
             
-            if (y >= botonSalir-40 && y<= botonSalir+40 && x >= 400-150 && x <= 400+150 && globalState == 0 ) {
-                menuSalir = true;
+            // back to HOME
+            if (y >= 0 && y <= segmentYLen && x >= 0 && x <= segmentXLen && globalState == 2) {
+                globalState = 0;
+            }
+            
+            // close
+            if (y >= segmentYLen * 1 && y <= segmentYLen * 2 && x >= segmentXLen * 1 && x <= segmentXLen*3 && globalState == 0) {
                 globalState = 3;
-            } else {
-                menuSalir = false;
             }
             
             glutPostRedisplay();
         }
-    }
-    if (state == GLUT_UP && button == GLUT_LEFT_BUTTON)
-    {
-        menuJugar = false;
-        menuInstr = false;
-        menuSalir = false;
-        glutPostRedisplay();
     }
     
 }
@@ -283,11 +282,7 @@ void menu()
     glPushMatrix();
     glTranslatef(400,botonJugar, -1);
     glScaled(350,80, 1);
-    if (menuJugar) {
-        glColor3d(0, 0, .9);
-    } else {
-        glColor3d(0, 0, .3);
-    }
+    glColor3d(0, 0, .3);
     glRotated(20, 1.0, 1.0, 0);
     glutSolidCube(1);
     glColor3d(1, 1, 1);
@@ -306,11 +301,7 @@ void menu()
     glPushMatrix();
     glTranslatef(400,botonInstr, -1);
     glScaled(350,80, 1);
-    if (menuInstr) {
-        glColor3d(0, 0, .9);
-    } else {
-        glColor3d(0, 0, .3);
-    }
+    glColor3d(0, 0, .3);
     glRotated(15, 1.0, 1.0, 1.0);
     glutSolidCube(1);
     glColor3d(1, 1, 1);
@@ -329,11 +320,7 @@ void menu()
     glPushMatrix();
     glTranslatef(400,botonSalir, -1);
     glScaled(350,80, 1);
-    if (menuSalir) {
-        glColor3d(0, 0, .9);
-    } else {
-        glColor3d(0, 0, .3);
-    }
+    glColor3d(0, 0, .3);
     glRotated(-20, 1.0, 1.0, 0);
     glutSolidCube(1);
     glColor3d(1, 1, 1);
@@ -358,7 +345,6 @@ void paintBackground()
     glVertex3f(0.0f,  600.0f,  -10.0f);
     glEnd();
     glDisable(GL_TEXTURE_2D);
-    cout<<"Draw Background"<<endl;
 }
 
 void drawShip()
@@ -405,30 +391,12 @@ void displayInstructions()
     glPushMatrix();
     glPushMatrix();
     glLineWidth(1.0);
-    drawText(volver, 100, 70, 0.4);
+    drawText(back, 100, 70, 0.4);
     glPopMatrix();
     glPushMatrix();
     glTranslatef(150,100, -1);
     glScaled(150,80, 1);
     glRotated(20, 1.0, 1.0, 0);
-    glColor3d(0, 0, .3);
-    glutSolidCube(1);
-    glColor3d(1, 1, 1);
-    glLineWidth(3);
-    glutWireCube(1);
-    glPopMatrix();
-    glPopMatrix();
-    
-    // Next button
-    glPushMatrix();
-    glPushMatrix();
-    glLineWidth(1.0);
-    drawText(siguente, 550, 75, 0.3);
-    glPopMatrix();
-    glPushMatrix();
-    glTranslatef(650,100, -1);
-    glScaled(170,80, 1);
-    glRotated(20, 1.0, -1.0, 0);
     glColor3d(0, 0, .3);
     glutSolidCube(1);
     glColor3d(1, 1, 1);
@@ -451,8 +419,8 @@ void randomBadPosition()
 {
     // X 300 - 500
     badX = rand() % 200 + 300;
-    // Y 250 - 380
-    badY = rand() % 130 + 250;
+    // Y 250 - 365
+    badY = rand() % 115 + 250;
     // randomize image
     badImage = rand() % 5 + 19;
 }
@@ -585,7 +553,51 @@ void drawInstImages()
 
 void drawLives()
 {
-    
+    for (int i = 0; i < livesCount; i++) {
+        glPushMatrix();
+        glTranslatef(355+10*i, 330, 600);
+        glScalef(10, 10, 10);
+        glRotatef(90, 0, 1, 0);
+        glmDraw(&model[1], GLM_NONE);
+        glPopMatrix();
+    }
+}
+
+void restart()
+{
+    spacePositionX = 400;
+    spacePositionY = 250;
+    zIndexGood = 0;
+    zIndexBad = -300;
+    speed = 50;
+    livesCount = 3;
+    globalState = 0;
+    if (hightScore < score ) {
+        hightScore = score/10;
+    }
+    score = 0;
+}
+
+void drawHighScore()
+{
+    cout<<highScoreLblBase<<endl;
+    glPushMatrix();
+    glClearColor(0, 0, 0, 1.0);
+    glColor3f(1, 1, 1);
+    glPushMatrix();
+    glLineWidth(3.0);
+    drawText(&highScoreLblBase[0], 250, 30, 0.3);
+    glPopMatrix();
+    glPushMatrix();
+    char integer_string[30];
+    sprintf(integer_string, "%d", hightScore);
+    strcpy(highScoreLbl, integer_string);
+    glClearColor(0, 0, 0, 1.0);
+    glColor3f(1, 1, 1);
+    glPushMatrix();
+    glLineWidth(3.0);
+    drawText(highScoreLbl, 550, 30, 0.3);
+    glPopMatrix();
 }
 
 void display(){
@@ -598,12 +610,15 @@ void display(){
     paintBackground();
     
     // MENU
-    cout<<globalState<<endl;
     switch (globalState) {
         case 0:
             menu();
+            drawHighScore();
             break;
         case 1:
+            if (livesCount == 0) {
+                restart();
+            }
             drawShip();
             drawBadSphera();
             drawGoodSphera();
@@ -629,16 +644,17 @@ void display(){
 void validateColission()
 {
     // colission to bad sphere
-    if (zIndexBad > 500 &&
-        badX > spacePositionX - 30 && badY < spacePositionX + 30 &&
+    if (zIndexBad > 480 &&
+        badX > spacePositionX - 35 && badY < spacePositionX + 35 &&
         badY > spacePositionY - 10 && badY < spacePositionY + 10) {
         speed = speed + 5;
         zIndexBad = 0;
         score = score - 1000;
+        livesCount--;
     }
     // colission to good sphere
-    if (zIndexGood > 500 &&
-        goodX > spacePositionX - 30 && goodX < spacePositionX + 30 &&
+    if (zIndexGood > 480 &&
+        goodX > spacePositionX - 35 && goodX < spacePositionX + 35 &&
         goodY > spacePositionY - 10 && goodY < spacePositionY + 10) {
         if (speed > 6) {
             speed = speed - 5;
@@ -651,7 +667,6 @@ void validateColission()
 void timer(int t)
 {
 
-    cout<<"speed: "<<speed<<endl;
     if (bgCounter == 17) {
         bgCounter = 0;
     }
